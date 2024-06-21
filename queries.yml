@@ -1,0 +1,798 @@
+---
+apiVersion: v1
+kind: query
+spec:
+  name: test_packages
+  query: SELECT * FROM deb_packages WHERE name LIKE 'vim%';
+---
+apiVersion: v1
+kind: query
+spec:
+  name: Check-DLP-System-Linux
+  query: select name,version from deb_packages where name like '%cosos%';
+---
+apiVersion: v1
+kind: query
+spec:
+  name: Check-DLP-System-Windows
+  query: SELECT name FROM programs where name like 'Endpoint Protector'
+---
+apiVersion: v1
+kind: query
+spec:
+  name: Check-Process-DLP
+  query: SELECT name, pid FROM processes where name like 'epp-client%' or name like
+    'EPPservice.exe' or name like 'EppClient'
+---
+apiVersion: v1
+kind: query
+spec:
+  name: disk_encryption_v1
+  query: SELECT * FROM disk_encryption where name in ('/dev/dm-0', '/dev/dm-1', '/dev/dm-2')
+---
+apiVersion: v1
+kind: query
+spec:
+  name: encryption_status
+  query: |-
+    SELECT m.device, m.device_alias, m.path, m.type, de.encryption_status
+    FROM mounts m
+      LEFT JOIN disk_encryption de ON de.name = m.device_alias
+    WHERE m.path LIKE '/' and de.encryption_status != 'not encrypted'
+    ORDER BY m.device;
+---
+apiVersion: v1
+kind: query
+spec:
+  name: Encryption_status-MS-Windows
+  query: |-
+    SELECT * FROM bitlocker_info
+    where bitlocker_info.protection_status != 1;
+---
+apiVersion: v1
+kind: query
+spec:
+  name: info_so_details
+  query: "select\n'On-Line' as status,\n(os.name ||' '|| os.major ||'.'||os.minor||'.'||os.patch)
+    AS so_name,\nos.platform_like as so_plataforma,\nos.codename as so_codename,\nos.version
+    as so_versao,\nki.version as kernel_versao, \nos.build as so_build,\nki.path as
+    kernel_path\nFROM kernel_info ki\nJOIN os_version os\nJOIN system_info si"
+---
+apiVersion: v1
+kind: query
+spec:
+  name: interface_addresses
+  query: select * FROM interface_addresses;
+---
+apiVersion: v1
+kind: query
+spec:
+  name: interface_details
+  query: select * FROM interface_details;
+---
+apiVersion: v1
+kind: query
+spec:
+  name: Last
+  query: SELECT username, time, host FROM last WHERE username = 'root';
+---
+apiVersion: v1
+kind: query
+spec:
+  name: List-chrome-extensions
+  query: "select chrome_extensions.name, chrome_extensions.version, chrome_extensions.description,
+    chrome_extensions.identifier \nfrom users join chrome_extensions using (uid)"
+---
+apiVersion: v1
+kind: query
+spec:
+  name: list_firewall
+  query: select chain,policy,protocol,src_ip,src_port,dst_ip,dst_port from iptables
+    where target = 'ACCEPT' and dst_port != '';
+---
+apiVersion: v1
+kind: query
+spec:
+  name: listening_port
+  query: SELECT DISTINCT process.name, listening.port, process.pid FROM processes
+    AS process JOIN listening_ports AS listening ON process.pid = listening.pid WHERE
+    listening.address = '0.0.0.0'
+---
+apiVersion: v1
+kind: query
+spec:
+  name: listening_port_sshd
+  query: SELECT DISTINCT process.name, listening.port, process.pid FROM processes
+    AS process JOIN listening_ports AS listening ON process.pid = listening.pid WHERE
+    process.name = 'sshd' AND listening.address = '0.0.0.0'
+---
+apiVersion: v1
+kind: query
+spec:
+  name: listing-port-RDP
+  query: SELECT DISTINCT process.name, listening.port, process.pid FROM processes
+    AS process JOIN listening_ports AS listening ON process.pid = listening.pid WHERE
+    listening.address = '0.0.0.0' and port = '3389'
+---
+apiVersion: v1
+kind: query
+spec:
+  name: oem_strings
+  query: select * FROM oem_strings;
+---
+apiVersion: v1
+kind: query
+spec:
+  name: os_version
+  query: select * FROM os_version;
+---
+apiVersion: v1
+kind: query
+spec:
+  name: status_firewall
+  query: select CASE WHEN count(*) = 0 then 'disable' else 'enable' end as ufw FROM
+    iptables where dst_port != '' AND target='ACCEPT';
+---
+apiVersion: v1
+kind: query
+spec:
+  name: system_info
+  query: select * from system_info;
+---
+apiVersion: v1
+kind: query
+spec:
+  name: Users
+  query: SELECT * FROM users where gid = 1000 or gid = 1001
+---
+apiVersion: v1
+kind: query
+spec:
+  name: Users-MS-Windows
+  query: SELECT * FROM users where gid = 513
+---
+apiVersion: v1
+kind: query
+spec:
+  name: whoami
+  query: SELECT user FROM logged_in_users WHERE user='root'
+---
+apiVersion: v1
+kind: query
+spec:
+  name: List-Kaspersky-pack
+  query: SELECT name FROM programs where name in ( 'Kaspersky Endpoint Security for
+    Windows', 'Kaspersky Security Center Network Agent')
+---
+apiVersion: v1
+kind: query
+spec:
+  description: Lista os endpoint que estão com o endpoint instalado.
+  name: Kaspersky Endpoint
+  query: SELECT name FROM programs where name in ( 'Kaspersky Endpoint Security for
+    Windows')
+---
+apiVersion: v1
+kind: query
+spec:
+  description: Lista as maquinas que estão sem o Network agente instalado.
+  name: Kaspersky Network Agent
+  query: SELECT name FROM programs where name in ('Kaspersky Security Center Network
+    Agent')
+---
+apiVersion: v1
+kind: query
+spec:
+  name: Log4_Linux
+  query: SELECT * FROM deb_packages where name like '%log4j%'
+---
+apiVersion: v1
+kind: query
+spec:
+  description: List shell_history for each users on the system - https://attack.mitre.org/techniques/T1562/003/
+  name: Linux command execution (MITRE. T1562.003)
+  query: select usr.username, sht.command, sht.history_file from shell_history sht
+    JOIN users usr ON sht.uid = usr.uid WHERE sht.uid IN (SELECT uid from users);
+---
+apiVersion: v1
+kind: query
+spec:
+  description: |
+    A consulta objetiva buscar processos na coluna cmdline, hosts que estão executando o comando  “sudo su” para elevar privilégios na máquina. - https://attack.mitre.org/techniques/T1548/003/
+  name: Linux_process_sudo_MITRE_T1548_003
+  query: SELECT uid, cmdline, name FROM processes where cmdline='sudo su' or cmdline='sudo
+    su -' or cmdline='sudo -s' limit 1;
+---
+apiVersion: v1
+kind: query
+spec:
+  description: Adversaries may gain access to a system through a user visiting a website
+    over the normal course of browsing. With this technique, the user's web browser
+    is typically targeted for exploitation, but adversaries may also use compromised
+    websites for non-exploitation behavior such as acquiring Application Access Token.
+  name: InitialAccess-DrivebyCompromise-Win
+  query: SELECT * FROM osquery_info;
+---
+apiVersion: v1
+kind: query
+spec:
+  description: Lista endpoint com torrent instalado.
+  name: List-torrent-Linux
+  query: select name,version from deb_packages where name like '%torrent%';
+---
+apiVersion: v1
+kind: query
+spec:
+  description: Lista endpoints Windows com o torrent instalado.
+  name: List-torrent-Windows
+  query: SELECT name, version FROM programs where name like '%torrent%'
+---
+apiVersion: v1
+kind: query
+spec:
+  description: "Busca por processos de shell que tenham sockets abertos. \n"
+  name: Reverse_Shell
+  query: |
+    SELECT DISTINCT(processes.pid), processes.parent, processes.name, processes.path,
+        processes.cmdline, processes.cwd, processes.root, processes.uid, processes.gid,
+        processes.start_time, process_open_sockets.remote_address, process_open_sockets.remote_port,
+        (SELECT cmdline FROM processes AS parent_cmdline WHERE pid=processes.parent) AS
+        parent_cmdline FROM processes JOIN process_open_sockets USING (pid) LEFT OUTER
+        JOIN process_open_files ON processes.pid = process_open_files.pid WHERE (name='sh'
+        OR name='bash') AND remote_address NOT IN ('0.0.0.0', '::', '') AND remote_address
+        NOT LIKE '10.%' AND remote_address NOT LIKE '192.168.%';
+---
+apiVersion: v1
+kind: query
+spec:
+  description: |
+    Identify SSH keys created without a passphrase which can be used in Lateral Movement (MITRE. TA0008) - https://attack.mitre.org/tactics/TA0008/ - https://fleetdm.com/queries/get-unencrypted-ssh-keys-for-local-accounts
+  name: Get unencrypted SSH keys for local accounts (MITRE. TA0008)
+  query: SELECT uid, username, description, path, encrypted FROM users CROSS JOIN
+    user_ssh_keys using (uid) WHERE encrypted=0;
+---
+apiVersion: v1
+kind: query
+spec:
+  description: Detect any processes that run with DYLD_INSERT_LIBRARIES environment
+    variable - https://attack.mitre.org/techniques/T1574/006/ - https://fleetdm.com/queries/get-dynamic-linker-hijacking-on-mac-os-mitre-t-1574-006
+  name: Get dynamic linker hijacking on macOS (MITRE. T1574.006)
+  query: SELECT env.pid, env.key, env.value, p.name,p.path, p.cmdline, p.cwd FROM
+    process_envs env join processes p USING (pid) WHERE key='DYLD_INSERT_LIBRARIES';
+---
+apiVersion: v1
+kind: query
+spec:
+  description: "Detect any processes that run with LD_PRELOAD environment variable.
+    \n- https://attack.mitre.org/techniques/T1574/006/\n- https://fleetdm.com/queries/get-dynamic-linker-hijacking-on-linux-mitre-t-1574-006"
+  name: Get dynamic linker hijacking on Linux (MITRE. T1574.006)
+  query: SELECT env.pid, env.key, env.value, p.name,p.path, p.cmdline, p.cwd FROM
+    process_envs env join processes p USING (pid) WHERE key='LD_PRELOAD';
+---
+apiVersion: v1
+kind: query
+spec:
+  description: |-
+    Get Nmap scanner process, as well as its user, parent, and process details.
+    - https://attack.mitre.org/techniques/T1046/ - https://fleetdm.com/queries/get-nmap-scanner
+  name: Get Nmap scanner (MITRE. T1046)
+  query: SELECT p.pid, name, p.path, cmdline, cwd, start_time, parent, (SELECT name
+    FROM processes WHERE pid=p.parent) AS parent_name, (SELECT username FROM users
+    WHERE uid=p.uid) AS username FROM processes as p WHERE cmdline like 'nmap%';
+---
+apiVersion: v1
+kind: query
+spec:
+  description: Linux sudoers information - https://attack.mitre.org/tactics/TA0043/
+  name: Linux list all sudoers (MITRE. T1548.003)
+  query: SELECT * FROM sudoers WHERE rule_details LIKE '%ALL';
+---
+apiVersion: v1
+kind: query
+spec:
+  description: Watches for the backdoored Python packages installed on system. See
+    (http://www.nbu.gov.sk/skcsirt-sa-20170909-pypi/index.html) - https://fleetdm.com/queries/get-malicious-python-backdoors
+  name: Get malicious Python backdoors
+  query: SELECT CASE cnt WHEN 0 THEN "NONE_INSTALLED" ELSE "INSTALLED" END AS "Malicious
+    Python Packages", package_name, package_version FROM (SELECT COUNT(name) AS cnt,
+    name AS package_name, version AS package_version, path AS package_path FROM python_packages
+    WHERE package_name IN ('acqusition', 'apidev-coop', 'bzip', 'crypt', 'django-server',
+    'pwd', 'setup-tools', 'telnet', 'urlib3', 'urllib'));
+---
+apiVersion: v1
+kind: query
+spec:
+  description: Identify SSH keys created without a passphrase which can be used in
+    Lateral Movement (MITRE. TA0008)
+  name: Get unencrypted SSH keys for domain joined accounts (MITRE. TA0008)
+  query: SELECT uid, username, description, path, encrypted FROM users CROSS JOIN
+    user_ssh_keys using (uid) WHERE encrypted=0 and username in (SELECT distinct(username)
+    FROM last);
+---
+apiVersion: v1
+kind: query
+spec:
+  description: |-
+    Returns top 10 applications or processes hogging memory the most.
+    - https://fleetdm.com/queries/get-applications-hogging-memory
+  name: Get applications hogging memory
+  query: SELECT pid, name, ROUND((total_size * '10e-7'), 2) AS memory_used FROM processes
+    ORDER BY total_size DESC LIMIT 10;
+---
+apiVersion: v1
+kind: query
+spec:
+  description: List linux files that are setuid-enabled
+  name: Linux setuid
+  query: select * from suid_bin;
+---
+apiVersion: v1
+kind: query
+spec:
+  name: DLP - List file options.ini - LINUX
+  query: "/*\nStatus --> Ainda em desenvolvimento. \nA ideia aqui é listar todos que
+    estão com o app dlp instalado, e ver se existe o arquivo\noptions.ini\n*/\nselect
+    name,version \nfrom deb_packages \nwhere name like '%cosos%' and\nNOT EXISTS (\n
+    \       SELECT * FROM file where path = '/opt/cososys/share/apps/epp-client/options.ini'\n
+    \   )\norder by \nname"
+---
+apiVersion: v1
+kind: query
+spec:
+  description: "Get current users with active shell/console on the system and associated
+    process  \n\n- https://fleetdm.com/queries/get-current-users-with-active-shell-console-on-the-system"
+  name: Get_current_users_with_active_shellconsole_on_the_system
+  query: SELECT user,host,time, p.name, p.cmdline, p.cwd, p.root FROM logged_in_users
+    liu, processes p WHERE liu.pid = p.pid and liu.type='user' and liu.user='root'
+    ORDER BY time;
+---
+apiVersion: v1
+kind: query
+spec:
+  description: The listening ports table will show you all the current running processes
+    with listening (bound) network sockets and ports
+  name: listening_ports_process_and_NameSystem
+  query: "SELECT pos.pid, local_address, local_port, \n  remote_address, remote_port,
+    family, protocol, \n  COALESCE(NULLIF(pos.path,''), p.path) AS path\nFROM process_open_sockets
+    AS pos\nINNER JOIN processes AS p ON p.pid = pos.pid\nWHERE remote_address <>
+    \"\"\n  AND remote_port != 0\n  AND pos.pid > 0;"
+---
+apiVersion: v1
+kind: query
+spec:
+  description: Checks if the root drive is encrypted. There are many ways to encrypt
+    Linux systems. This is the default on distributions such as Ubuntu. - https://fleetdm.com/queries/full-disk-encryption-enabled-linux
+  name: Full_disk_encryption_enabled_Linux
+  query: SELECT 1 FROM disk_encryption WHERE encrypted=1 AND name LIKE '/dev/dm-1';
+---
+apiVersion: v1
+kind: query
+spec:
+  name: Check-DC-System-Linux
+  query: SELECT * FROM file where path = '/usr/local/desktopcentralagent/bin/dcservice'
+---
+apiVersion: v1
+kind: query
+spec:
+  description: https://fleetdm.com/use-cases/locate-assets-with-osquery
+  name: Check IP-Geolocation
+  query: |-
+    SELECT JSON_EXTRACT(result, '$.ip') AS ip,
+     JSON_EXTRACT(result, '$.city') AS city,
+     JSON_EXTRACT(result, '$.region') AS region,
+     JSON_EXTRACT(result, '$.country') AS country
+    FROM curl
+    WHERE url = 'http://ipapi.co/json';
+---
+apiVersion: v1
+kind: query
+spec:
+  name: Users by user
+  query: 'SELECT directory, username FROM users where username like ''%sophia%'' '
+---
+apiVersion: v1
+kind: query
+spec:
+  description: suid binaries in common locations. https://attack.mitre.org/techniques/T1548/001/
+  name: List_ALL_SUID_Set-Linux (MITRE. T1548.001)
+  query: 'select * from suid_bin '
+---
+apiVersion: v1
+kind: query
+spec:
+  description: |-
+    -- Find unexpected setuid binaries on disk
+    --
+    -- false positives:
+    --   * new software
+    --
+    -- tags: persistent seldom
+    -- platform: posix
+
+    https://github.com/chainguard-dev/osquery-defense-kit/blob/main/detection/execution/unexpected-setuid-binaries.sql
+  name: Unexpected_setuid_binaries
+  query: |-
+    SELECT
+      file.path,
+      gid,
+      uid,
+      mode,
+      type,
+      size,
+      sha256
+    FROM
+      file
+      JOIN hash ON file.path = hash.path
+    WHERE
+      (
+        file.path LIKE '/bin/%'
+        OR file.path LIKE '/home/%/bin/%'
+        OR file.path LIKE '/opt/%/bin/%'
+        OR file.path LIKE '/opt/%/sbin/%'
+        OR file.path LIKE '/sbin/%'
+        OR file.path LIKE '/tmp/%'
+        OR file.path LIKE '/Users/%/bin/%'
+        OR file.path LIKE '/usr/bin/%'
+        OR file.path LIKE '/usr/lib/%'
+        OR file.path LIKE '/usr/lib64/%'
+        OR file.path LIKE '/usr/libexec/%'
+        OR file.path LIKE '/usr/local/bin/%'
+        OR file.path LIKE '/usr/local/lib/%'
+        OR file.path LIKE '/usr/local/lib64/%'
+        OR file.path LIKE '/usr/local/libexec/%'
+        OR file.path LIKE '/usr/local/sbin/%'
+        OR file.path LIKE '/usr/sbin/%'
+        OR file.path LIKE '/var/lib/%'
+        OR file.path LIKE '/var/tmp/%'
+      )
+      AND type = 'regular'
+      AND mode NOT LIKE '0%'
+      AND mode NOT LIKE '1%'
+      AND mode NOT LIKE '2%'
+      AND NOT (
+        mode LIKE '4%11'
+        AND uid = 0
+        AND gid = 0
+        AND file.path IN (
+          '/bin/cdda2wav',
+          '/bin/cdrecord',
+          '/bin/icedax',
+          '/bin/mount.nfs',
+          '/bin/mount.nfs4',
+          '/bin/readcd',
+          '/bin/readom',
+          '/bin/rscsi',
+          '/bin/staprun',
+          '/bin/sudo',
+          '/bin/sudoedit',
+          '/bin/umount.nfs',
+          '/bin/umount.nfs4',
+          '/bin/wodim',
+          '/sbin/cdda2wav',
+          '/sbin/cdrecord',
+          '/sbin/icedax',
+          '/sbin/mount.nfs',
+          '/sbin/mount.nfs4',
+          '/sbin/readcd',
+          '/sbin/readom',
+          '/sbin/rscsi',
+          '/sbin/umount.nfs',
+          '/sbin/umount.nfs4',
+          '/sbin/userhelper',
+          '/sbin/wodim',
+          '/usr/bin/cdda2wav',
+          '/usr/bin/cdrecord',
+          '/usr/bin/icedax',
+          '/usr/bin/mount.nfs',
+          '/usr/bin/mount.nfs4',
+          '/usr/bin/readcd',
+          '/usr/bin/readom',
+          '/usr/bin/rscsi',
+          '/usr/bin/staprun',
+          '/usr/bin/sudo',
+          '/usr/bin/sudoedit',
+          '/usr/bin/umount.nfs',
+          '/usr/bin/umount.nfs4',
+          '/usr/bin/wodim',
+          '/usr/libexec/security_authtrampoline',
+          '/usr/sbin/cdda2wav',
+          '/usr/sbin/cdrecord',
+          '/usr/sbin/icedax',
+          '/usr/sbin/mount.nfs',
+          '/usr/sbin/mount.nfs4',
+          '/usr/sbin/readcd',
+          '/usr/sbin/readom',
+          '/usr/sbin/rscsi',
+          '/usr/sbin/umount.nfs',
+          '/usr/sbin/umount.nfs4',
+          '/usr/sbin/userhelper',
+          '/usr/sbin/wodim'
+        )
+      )
+      AND NOT (
+        mode LIKE '4%55'
+        AND uid = 0
+        AND gid = 0
+        AND file.path IN (
+          '/bin/chage',
+          '/bin/chfn',
+          '/bin/chsh',
+          '/bin/crontab',
+          '/bin/doas',
+          '/bin/expiry',
+          '/bin/fusermount-glusterfs',
+          '/bin/fusermount',
+          '/bin/fusermount3',
+          '/bin/gpasswd',
+          '/bin/ksu',
+          '/bin/mount',
+          '/bin/ndisc6',
+          '/bin/newgidmap',
+          '/bin/newgrp',
+          '/bin/newuidmap',
+          '/usr/bin/newgidmap',
+          '/bin/nvidia-modprobe',
+          '/bin/passwd',
+          '/bin/pkexec',
+          '/bin/ps',
+          '/bin/rdisc6',
+          '/bin/rltraceroute6',
+          '/bin/sg',
+          '/bin/su',
+          '/bin/sudo',
+          '/bin/sudoedit',
+          '/bin/suexec',
+          '/bin/ubuntu-core-launcher',
+          '/bin/umount',
+          '/bin/vmware-user-suid-wrapper',
+          '/bin/vmware-user',
+          '/sbin/chage',
+          '/sbin/chfn',
+          '/sbin/chsh',
+          '/sbin/crontab',
+          '/sbin/doas',
+          '/sbin/expiry',
+          '/sbin/fusermount',
+          '/sbin/fusermount3',
+          '/sbin/gpasswd',
+          '/sbin/grub2-set-bootflag',
+          '/sbin/ksu',
+          '/sbin/mount.nfs',
+          '/sbin/mount.nfs4',
+          '/sbin/mount',
+          '/sbin/ndisc6',
+          '/sbin/newgrp',
+          '/sbin/nvidia-modprobe',
+          '/sbin/pam_timestamp_check',
+          '/sbin/passwd',
+          '/sbin/pkexec',
+          '/sbin/rdisc6',
+          '/sbin/rltraceroute6',
+          '/sbin/sg',
+          '/sbin/su',
+          '/sbin/sudo',
+          '/sbin/sudoedit',
+          '/sbin/suexec',
+          '/sbin/umount.nfs',
+          '/sbin/umount.nfs4',
+          '/sbin/umount',
+          '/sbin/unix_chkpwd',
+          '/usr/bin/at',
+          '/usr/bin/atq',
+          '/usr/bin/atrm',
+          '/usr/bin/batch',
+          '/usr/bin/chage',
+          '/usr/bin/chfn',
+          '/usr/bin/chsh',
+          '/usr/bin/crontab',
+          '/usr/bin/doas',
+          '/usr/bin/expiry',
+          '/usr/bin/fusermount-glusterfs',
+          '/usr/bin/fusermount',
+          '/usr/bin/fusermount3',
+          '/usr/bin/gpasswd',
+          '/usr/bin/ksu',
+          '/usr/bin/login',
+          '/usr/bin/mount',
+          '/usr/bin/ndisc6',
+          '/usr/bin/newgrp',
+          '/usr/bin/newuidmap',
+          '/usr/bin/nvidia-modprobe',
+          '/usr/bin/passwd',
+          '/usr/bin/pkexec',
+          '/usr/bin/quota',
+          '/usr/bin/mullvad-exclude',
+          '/usr/sbin/mullvad-exclude',
+          '/usr/bin/rdisc6',
+          '/usr/bin/rltraceroute6',
+          '/usr/bin/sg',
+          '/sbin/mullvad-exclude',
+          '/bin/mullvad-exclude',
+          '/usr/bin/su',
+          '/usr/bin/sudo',
+          '/usr/bin/sudoedit',
+          '/usr/bin/suexec',
+          '/usr/bin/top',
+          '/usr/bin/ubuntu-core-launcher',
+          '/usr/bin/umount',
+          '/usr/bin/vmware-user-suid-wrapper',
+          '/usr/bin/vmware-user',
+          '/usr/lib/mail-dotlock',
+          '/usr/lib/xf86-video-intel-backlight-helper',
+          '/usr/lib/Xorg.wrap',
+          '/usr/lib64/mail-dotlock',
+          '/usr/lib64/xf86-video-intel-backlight-helper',
+          '/usr/lib64/Xorg.wrap',
+          '/usr/libexec/authopen',
+          '/usr/libexec/polkit-agent-helper-1',
+          '/usr/libexec/qemu-bridge-helper',
+          '/usr/libexec/Xorg.wrap',
+          '/usr/sbin/chage',
+          '/usr/sbin/chfn',
+          '/usr/sbin/chsh',
+          '/usr/sbin/crontab',
+          '/usr/sbin/doas',
+          '/usr/sbin/expiry',
+          '/usr/sbin/fusermount',
+          '/usr/sbin/fusermount3',
+          '/usr/sbin/gpasswd',
+          '/usr/sbin/grub2-set-bootflag',
+          '/usr/sbin/ksu',
+          '/usr/sbin/mount.nfs',
+          '/usr/sbin/mount.nfs4',
+          '/usr/sbin/mount',
+          '/usr/sbin/ndisc6',
+          '/usr/sbin/newgrp',
+          '/usr/sbin/nvidia-modprobe',
+          '/usr/sbin/pam_timestamp_check',
+          '/usr/sbin/passwd',
+          '/usr/sbin/pkexec',
+          '/usr/sbin/rdisc6',
+          '/usr/sbin/rltraceroute6',
+          '/usr/sbin/sg',
+          '/usr/sbin/su',
+          '/usr/sbin/sudo',
+          '/usr/sbin/sudoedit',
+          '/usr/sbin/suexec',
+          '/usr/sbin/traceroute',
+          '/usr/sbin/traceroute6',
+          '/usr/sbin/umount.nfs',
+          '/usr/sbin/umount.nfs4',
+          '/usr/sbin/umount',
+          '/usr/sbin/unix_chkpwd'
+        )
+      )
+      AND NOT (
+        mode = '4754'
+        AND uid = 0
+        AND gid = 30
+        AND file.path IN ('/usr/sbin/pppd', '/sbin/pppd')
+      )
+      AND NOT (
+        mode = '6755'
+        AND uid = 0
+        AND gid = 0
+        AND file.path IN (
+          '/bin/mount.cifs',
+          '/bin/mount.smb3',
+          '/bin/unix_chkpwd',
+          '/sbin/mount.cifs',
+          '/sbin/mount.smb3',
+          '/sbin/unix_chkpwd',
+          '/usr/bin/mount.cifs',
+          '/usr/bin/mount.smb3',
+          '/usr/bin/unix_chkpwd',
+          '/usr/lib/xtest',
+          '/usr/lib64/xtest',
+          '/usr/sbin/mount.cifs',
+          '/usr/sbin/mount.smb3',
+          '/usr/sbin/unix_chkpwd'
+        )
+      )
+      AND NOT (
+        mode = '4110'
+        AND uid = 0
+        AND gid = 156
+        AND file.path IN ('/bin/staprun', '/usr/bin/staprun')
+      )
+---
+apiVersion: v1
+kind: query
+spec:
+  description: |-
+    -- Processes running that originate from setuid/setgid programs
+    --
+    -- false-positives:
+    --   * an unlisted setuid binary
+    --
+    -- references:
+    --   * https://attack.mitre.org/techniques/T1548/001/ (Setuid and Setgid)
+    --
+    -- tags: persistent state process escalation
+    -- platform: posix
+
+    https://github.com/chainguard-dev/osquery-defense-kit/blob/main/detection/privesc/unexpected-setxid-process.sql
+  name: Unexpected_setxid_process
+  query: |-
+    SELECT
+      p.pid,
+      p.name,
+      p.path,
+      p.cmdline,
+      f.ctime,
+      p.cwd,
+      p.uid,
+      f.mode,
+      hash.sha256
+    FROM
+      processes p
+      JOIN file f ON p.path = f.path
+      JOIN hash ON p.path = hash.path
+    WHERE
+      f.mode NOT LIKE '0%'
+      AND f.path NOT IN (
+        '/bin/ps',
+        '/Library/DropboxHelperTools/Dropbox_u501/dbkextd',
+        '/opt/1Password/1Password-BrowserSupport',
+        '/opt/1Password/1Password-KeyringHelper',
+        '/usr/bin/doas',
+        '/usr/lib/xf86-video-intel-backlight-helper',
+        '/usr/bin/mount',
+        '/usr/bin/fusermount',
+        '/usr/bin/fusermount3',
+        '/usr/sbin/traceroute',
+        '/usr/bin/login',
+        '/usr/bin/ssh-agent',
+        '/usr/bin/su',
+        '/Applications/Parallels Desktop.app/Contents/MacOS/Parallels Service',
+        '/usr/bin/sudo',
+        '/usr/bin/top',
+        '/usr/lib/Xorg.wrap'
+      );
+---
+apiVersion: v1
+kind: query
+spec:
+  description: https://www.zdnet.com/article/patch-now-serious-linux-kernel-security-hole-uncovered/
+  name: Linux_kernel_vulnerable_module
+  query: select name, used_by, CASE WHEN name like 'ksmb' then 'Yes' end as vulnerable
+    FROM kernel_modules where name='ksmb'
+---
+apiVersion: v1
+kind: query
+spec:
+  description: https://www.cyberciti.biz/faq/linux-hide-processes-from-other-users/
+  name: Checking_linux_hidden_processes
+  query: SELECT * FROM mounts where flags = 'rw,nosuid,nodev,noexec,relatime,hidepid=invisible'
+
+---
+apiVersion: v1
+kind: query
+spec:
+  description: 
+  name: Show_Process_Network_Connections
+  query: select DISTINCT p.name, p.path, pos.remote_address, pos.remote_port from process_open_sockets pos LEFT JOIN processes p ON pos.pid = p.pid WHERE pos.remote_port != 0 and p.name != '';
+
+---
+apiVersion: v1
+kind: query
+spec:
+  description: 
+  name: Hardware_Inventory
+  query: select cpu_type, cpu_subtype, cpu_brand, physical_memory, hardware_vendor, hardware_model, hardware_version from system_info;
+
+---
+apiVersion: v1
+kind: query
+spec:
+  description: 
+  name: MacOS-Identifying_Programs
+  query: SELECT name, version, path FROM homebrew_packages;
+
+---
+apiVersion: v1
+kind: query
+spec:
+  description: 
+  name: ALL_Open-Sockets
+  query: SELECT processes.name, processes.path, processes.cmdline, listening_ports.address, listening_ports.pid, listening_ports.port, listening_ports.protocol FROM listening_ports JOIN processes ON listening_ports.pid = processes.pid WHERE listening_ports.address NOT LIKE "0.0.0.0";

@@ -1,0 +1,82 @@
+version: '3.9'
+services:
+
+  ############################################## fleet with config ##############################################
+  fleet:
+    image: fleetdm/fleet:v4.26.0
+    command: sh -c "/usr/bin/fleet prepare db --config /etc/fleet/fleet.yml && /usr/bin/fleet serve --config /etc/fleet/fleet.yml"
+    configs:
+      - source: fleetdm-config
+        target: /etc/fleet/fleet.yml
+    secrets:
+      - rds-aws-secret
+      - fleetdm-jwt-key
+      #- fleetdm-tls-cert
+      #- fleetdm-tls-key
+    volumes:      
+      - fleet-logs:/home/fleet      
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - target: 8080
+        published: 8080
+        mode: host
+    networks:
+      - default
+      - fleet-backend
+    depends_on:
+      - redis
+    deploy:
+      mode: replicated
+      replicas: 1
+      resources:
+        limits:
+          memory: 100M
+        reservations:
+          memory: 50M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 10
+        window: 120s
+  
+  
+  ############################################## Redis ##############################################
+  redis:
+    image: redis:6.2.6-alpine
+    networks: 
+      - fleet-backend
+    deploy:
+      resources:
+        limits:
+          memory: 100M
+        reservations:
+          memory: 50M
+      restart_policy:
+        condition: on-failure
+
+volumes:
+ 
+  fleet-logs:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: /opt/fleetdm/log/
+
+networks:
+  fleet-backend:
+
+configs:
+  fleetdm-config:
+    file: ./conf/docker/fleetdm/fleetdm-swarm.yml
+
+secrets:
+  rds-aws-secret:
+    external: true
+  fleetdm-jwt-key:
+    external: true
+  #fleetdm-tls-cert:
+  #  file: conf/tls/fleet.crt
+  #fleetdm-tls-key:
+  #  file: conf/tls/fleet.key
+  
